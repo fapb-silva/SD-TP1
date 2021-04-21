@@ -34,10 +34,10 @@ public class Cell {
 	 * @return String encoding the cell identifier in the format ColumnRow (e.g., A23 or C12)
 	 */
 	public static final String Indices2CellId(int rowIndex, int columnIndex) {
-		var s = Character.toString('A' + (char)(columnIndex % CellRange.BASE));
+		var s = Character.toString((char)('A' +(columnIndex % CellRange.BASE)));
 		while(columnIndex >= CellRange.BASE) {
 			columnIndex /= CellRange.BASE;
-			s = Character.toString('A' + (char)(columnIndex % CellRange.BASE) - 1) + s;
+			s = Character.toString((char)('A' + (columnIndex % CellRange.BASE) - 1)) + s;
 		};
 		return s + (rowIndex+1);
 	}

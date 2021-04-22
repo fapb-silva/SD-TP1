@@ -27,20 +27,27 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 		Log.info("createSpreadsheet : " + sheet);
 		
 		
-		// Check if user is valid, if not return HTTP CONFLICT (409)
-		if (sheet.getSheetId() == null || GetUserClient == null) {
+		// Check if sheet is valid, if not return HTTP BAD_REQUEST (400)
+		if (sheet.getSheetId() == null) {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
+		
 		
 		//missing checks
 		
 		
 		synchronized (this) {
-
+			//synchronized???passcheck??
+			// Check if password valid, if not return HTTP BAD_REQUEST (400)
+			if (GetUserClient == password) {
+				Log.info("Spreadsheet object invalid.");
+				throw new WebApplicationException(Status.BAD_REQUEST);
+			}
+			
 			// Check if userId does not exist exists, if not return HTTP CONFLICT (409)
 			if (sheets.containsKey(sheet.getSheetId())) {
-				Log.info("User already exists.");
+				Log.info("sheet already exists.");
 				throw new WebApplicationException(Status.BAD_REQUEST);
 			}
 
@@ -56,19 +63,52 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	public void deleteSpreadsheet(String sheetId, String password) {
 		// TODO Henrique
 		
-		//if sheetId is not stored throw
-		if(!sheets.containsKey(sheetId)) {
-			Log.info("Sheet does not exist.");
+		if (sheetId == null || password == null) {
+			Log.info("UserId or passwrod null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		
+		// Check if password valid, if not return HTTP BAD_REQUEST (400)
+		if (GetUserClient.getPassword == password) {
+			Log.info("Spreadsheet object invalid.");
+			throw new WebApplicationException(Status.FORBIDDEN);
+		}
+		
+		//if sheetId is not stored throw
+		if(!sheets.containsKey(sheetId)) {
+			Log.info("Sheet does not exist.");
+			throw new WebApplicationException(Status.NOT_FOUND);
+		}
+		
 		sheets.remove(sheetId);
+		
+		throw new WebApplicationException(Status.NO_CONTENT);
+		
 	}
 
 	@Override
 	public Spreadsheet getSpreadsheet(String sheetId, String userId, String password) {
 		// TODO Henrique
-		return null;
+		
+		synchronized (this) {
+		
+			//if sheetId is not stored throw
+			if(!sheets.containsKey(sheetId) || GetUserClient == null) {
+				Log.info("Sheet does not exist.");
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
+			
+		}
+		
+		// Check if password valid, if not return HTTP BAD_REQUEST (400)
+		if (GetUserClient.getPassword == password) {
+			Log.info("Spreadsheet object invalid.");
+			throw new WebApplicationException(Status.FORBIDDEN);
+		}
+		
+		
+		
+		return sheets.get(sheetId);//send200?
 	}
 
 	@Override

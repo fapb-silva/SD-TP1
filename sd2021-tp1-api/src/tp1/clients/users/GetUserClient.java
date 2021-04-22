@@ -14,6 +14,7 @@ import org.glassfish.jersey.client.ClientConfig;
 
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
+import tp1.server.Discovery;
 
 public class GetUserClient {
 
@@ -43,9 +44,17 @@ public class GetUserClient {
 			System.out.println("Success:");
 			User u = r.readEntity(User.class);
 			System.out.println( "User : " + u);
+			
+			//HENRIQUE-TODO
+			
 		} else
 			System.out.println("Error, HTTP error status: " + r.getStatus() );
+		
+		//HENRIQUE
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, "GetUserClient", "");//nao mandam links pq nao vao ser acedidos
+        discovery.start();
 
 	}
+	
 	
 }

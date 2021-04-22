@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.Response.Status;
 import tp1.api.Spreadsheet;
 import tp1.api.User;
 import tp1.api.service.rest.RestSpreadsheets;
+import tp1.clients.users.GetUserClient;
 
 @Singleton
 public class SpreadsheetsResource implements RestSpreadsheets{
@@ -23,13 +24,45 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	@Override
 	public String createSpreadsheet(Spreadsheet sheet, String password) {
 		// TODO Henrique
-		return null;
+		Log.info("createSpreadsheet : " + sheet);
+		
+		
+		// Check if user is valid, if not return HTTP CONFLICT (409)
+		if (sheet.getSheetId() == null || GetUserClient == null) {
+			Log.info("Spreadsheet object invalid.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		
+		//missing checks
+		
+		
+		synchronized (this) {
+
+			// Check if userId does not exist exists, if not return HTTP CONFLICT (409)
+			if (sheets.containsKey(sheet.getSheetId())) {
+				Log.info("User already exists.");
+				throw new WebApplicationException(Status.BAD_REQUEST);
+			}
+
+			// Add the sheet to the map of users
+
+			sheets.put(sheet.getSheetId(), sheet);
+		}		
+		
+		return sheet.getSheetId();
 	}
 
 	@Override
 	public void deleteSpreadsheet(String sheetId, String password) {
 		// TODO Henrique
 		
+		//if sheetId is not stored throw
+		if(!sheets.containsKey(sheetId)) {
+			Log.info("Sheet does not exist.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		
+		sheets.remove(sheetId);
 	}
 
 	@Override

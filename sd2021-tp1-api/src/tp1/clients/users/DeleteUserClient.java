@@ -14,6 +14,7 @@ import org.glassfish.jersey.client.ClientConfig;
 
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
+import tp1.server.Discovery;
 
 public class DeleteUserClient {
 
@@ -46,6 +47,9 @@ public class DeleteUserClient {
 		} else
 			System.out.println("Error, HTTP error status: " + r.getStatus() );
 
+		//HENRIQUE
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, "DeleteUserClient", "");//nao mandam links pq nao vao ser acedidos
+        discovery.start();
 	}
 	
 }

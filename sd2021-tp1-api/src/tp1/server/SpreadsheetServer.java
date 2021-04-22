@@ -8,11 +8,11 @@ import java.util.logging.Logger;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import tp1.server.resources.UsersResource;
+import tp1.server.resources.SpreadsheetsResource;
 
-public class UsersServer {
+public class SpreadsheetServer {
 
-	private static Logger Log = Logger.getLogger(UsersServer.class.getName());
+	private static Logger Log = Logger.getLogger(SpreadsheetServer.class.getName());
 
 	static {
 		System.setProperty("java.net.preferIPv4Stack", "true");
@@ -22,12 +22,13 @@ public class UsersServer {
 	public static final int PORT = 8080;
 	public static final String SERVICE = "UsersService";
 	
+	
 	public static void main(String[] args) {
 		try {
 		String ip = InetAddress.getLocalHost().getHostAddress();
 			
 		ResourceConfig config = new ResourceConfig();
-		config.register(UsersResource.class);
+		config.register(SpreadsheetsResource.class);
 
 		String serverURI = String.format("http://%s:%s/rest", ip, PORT);
 		JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);

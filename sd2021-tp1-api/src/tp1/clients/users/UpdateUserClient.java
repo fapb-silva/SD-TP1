@@ -15,6 +15,7 @@ import org.glassfish.jersey.client.ClientConfig;
 
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
+import tp1.server.Discovery;
 
 public class UpdateUserClient {
 
@@ -50,6 +51,9 @@ public class UpdateUserClient {
 		else
 			System.out.println("Error, HTTP error status: " + r.getStatus() );
 
+		//HENRIQUE
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, "UpdateUserClient", "");//nao mandam links pq nao vao ser acedidos
+        discovery.start();
 	}
 	
 }

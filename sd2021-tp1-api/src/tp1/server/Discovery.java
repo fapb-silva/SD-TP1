@@ -37,9 +37,10 @@ public class Discovery {
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s");
 	}
 	
+	//HENRIQUE-passei DISCOVERY_ADDR para publico
 	
 	// The pre-aggreed multicast endpoint assigned to perform discovery. 
-	static final InetSocketAddress DISCOVERY_ADDR = new InetSocketAddress("226.226.226.226", 2266);
+	public static final InetSocketAddress DISCOVERY_ADDR = new InetSocketAddress("226.226.226.226", 2266);
 	static final int DISCOVERY_PERIOD = 1000;
 	static final int DISCOVERY_TIMEOUT = 5000;
 
@@ -57,7 +58,7 @@ public class Discovery {
 	 * @param  serviceName the name of the service to announce
 	 * @param  serviceURI an uri string - representing the contact endpoint of the service being announced
 	 */
-	Discovery( InetSocketAddress addr, String serviceName, String serviceURI) {
+	public Discovery( InetSocketAddress addr, String serviceName, String serviceURI) {
 		this.addr = addr;
 		this.serviceName = serviceName;
 		this.serviceURI  = serviceURI;

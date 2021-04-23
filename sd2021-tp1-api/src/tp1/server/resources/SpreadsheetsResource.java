@@ -1,6 +1,7 @@
 package tp1.server.resources;
 
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +35,14 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	
 	private final Map<String,Spreadsheet> sheets = new HashMap<String, Spreadsheet>();
 	private Discovery discovery;
+	private String domain;
 	
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
 
-	public SpreadsheetsResource(Discovery discovery) {
+	public SpreadsheetsResource(Discovery discovery, String domain) {
 		// TODO
 		this.discovery = discovery;
+		this.domain = domain;
 	}
 
 	@Override
@@ -240,7 +243,10 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 		return false;
 	}
 
-	private String discoverySearch() {
+	private URI discoverySearch(String service) {
 		
+		URI uri= knownUrisOf(service);
+		
+		return service;
 	}
 }

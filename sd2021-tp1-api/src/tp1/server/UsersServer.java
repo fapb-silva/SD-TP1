@@ -24,6 +24,7 @@ public class UsersServer {
 	
 	public static void main(String[] args) {
 		try {
+		String domain = args[0];
 		String ip = InetAddress.getLocalHost().getHostAddress();
 			
 		ResourceConfig config = new ResourceConfig();
@@ -32,12 +33,12 @@ public class UsersServer {
 		String serverURI = String.format("http://%s:%s/rest", ip, PORT);
 		JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);
 	
-		Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
+		Log.info(String.format("%s Server ready @ %s\n",  domain+":"+SERVICE, serverURI));
 		
 		//More code can be executed here...
 		
 		
-		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, "http://" + ip);
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, domain+":"+SERVICE, serverURI);
 		discovery.start();
 		
 		} catch( Exception e) {

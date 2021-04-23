@@ -25,10 +25,11 @@ public class SpreadsheetServer {
 	
 	public static void main(String[] args) {
 		try {
+		String domain = args[0];
 		String ip = InetAddress.getLocalHost().getHostAddress();
 		String serverURI = String.format("http://%s:%s/rest", ip, PORT);	
 		
-		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, serverURI);
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, domain +":"+ SERVICE, serverURI);
 		
 		ResourceConfig config = new ResourceConfig();
 		SpreadsheetsResource sheetResource = new SpreadsheetsResource(discovery);
@@ -36,7 +37,7 @@ public class SpreadsheetServer {
 
 		JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);
 	
-		Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
+		Log.info(String.format("%s Server ready @ %s\n",  domain+":"+SERVICE, serverURI));
 		
 		//More code can be executed here...
 		

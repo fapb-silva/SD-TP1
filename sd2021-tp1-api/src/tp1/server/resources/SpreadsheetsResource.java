@@ -63,6 +63,7 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	public void deleteSpreadsheet(String sheetId, String password) {
 		// TODO Henrique
 		
+		//400 - incorrect values
 		if (sheetId == null || password == null) {
 			Log.info("UserId or passwrod null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
@@ -90,6 +91,13 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	public Spreadsheet getSpreadsheet(String sheetId, String userId, String password) {
 		// TODO Henrique
 		
+		//400 - incorrect values
+		if (sheetId == null || password == null || userId == null) {
+			Log.info("SheetId, UserId or passwrod null.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		
+		// 404 - not_found
 		synchronized (this) {
 		
 			//if sheetId is not stored throw
@@ -100,7 +108,7 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 			
 		}
 		
-		// Check if password valid, if not return HTTP BAD_REQUEST (400)
+		// 403 - incorrect password
 		if (GetUserClient.getPassword == password) {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
@@ -113,8 +121,35 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 
 	@Override
 	public String[][] getSpreadsheetValues(String sheetId, String userId, String password) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO 
+		
+		//400 - incorrect values
+		if (sheetId == null || password == null || userId == null) {
+			Log.info("SheetId, UserId or passwrod null.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		
+		// 404 - not_found
+		Spreadsheet sheet;
+		synchronized (this) {
+			
+			//if sheetId is not stored throw
+			if(!sheets.containsKey(sheetId) || GetUserClient == null) {
+				Log.info("Sheet does not exist.");
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}else 
+				sheet = sheets.get(sheetId);  
+			
+		}
+		
+		// 403 - user not shared, user not owner, incorrect pass
+		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId || GetUserClient.getPassword == password) {
+			Log.info("Spreadsheet object invalid.");
+			throw new WebApplicationException(Status.FORBIDDEN);
+		}
+		
+		// 200 - sucess
+		return sheet.getRawValues();
 	}
 
 	@Override

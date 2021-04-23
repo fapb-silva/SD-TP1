@@ -194,6 +194,8 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 		
 		
 		// 200 - sucess
+		
+		
 	}
 
 	@Override
@@ -203,10 +205,6 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	}
 	
 	private boolean checkPassword(String userId, String password) {
-
-		//tratamento do user
-		
-		
 		
 		ClientConfig config = new ClientConfig();
 		//how much time until we timeout when opening the TCP connection to the server
@@ -214,7 +212,8 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 		//how much time do we wait for the reply of the server after sending the request
 		config.property(ClientProperties.READ_TIMEOUT, REPLY_TIMEOUT);
 		Client client = ClientBuilder.newClient(config);
-
+		
+		URI serverUrl = discoverySearch( domain + ":Users");
 		WebTarget target = client.target( serverUrl ).path( RestUsers.PATH );
 
 		short retries = 0;
@@ -244,9 +243,10 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	}
 
 	private URI discoverySearch(String service) {
-		
-		URI uri= knownUrisOf(service);
-		
-		return service;
-	}
+        URI[] uriList = discovery.knownUrisOf(service);
+        if(uriList.length>0) 
+        return uriList[0];
+        
+        return null;
+    }
 }

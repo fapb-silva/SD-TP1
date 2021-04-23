@@ -20,25 +20,26 @@ public class SpreadsheetServer {
 	}
 	
 	public static final int PORT = 8080;
-	public static final String SERVICE = "SpreadsheetServerService";
+	public static final String SERVICE = "Sheets";
 	
 	
 	public static void main(String[] args) {
 		try {
 		String ip = InetAddress.getLocalHost().getHostAddress();
-			
+		String serverURI = String.format("http://%s:%s/rest", ip, PORT);	
+		
+		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, serverURI);
+		
 		ResourceConfig config = new ResourceConfig();
-		config.register(SpreadsheetsResource.class);
+		SpreadsheetsResource sheetResource = new SpreadsheetsResource(discovery);
+		config.register(sheetResource);
 
-		String serverURI = String.format("http://%s:%s/rest", ip, PORT);
 		JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);
 	
 		Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
 		
 		//More code can be executed here...
 		
-		
-		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, "http://" + ip);
 		discovery.start();
 		
 		} catch( Exception e) {

@@ -22,6 +22,7 @@ import tp1.api.Spreadsheet;
 import tp1.api.User;
 import tp1.api.service.rest.RestSpreadsheets;
 import tp1.api.service.rest.RestUsers;
+import tp1.server.Discovery;
 
 @Singleton
 public class SpreadsheetsResource implements RestSpreadsheets{
@@ -32,8 +33,14 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	private final static int REPLY_TIMEOUT = 600;
 	
 	private final Map<String,Spreadsheet> sheets = new HashMap<String, Spreadsheet>();
+	private Discovery discovery;
 	
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
+
+	public SpreadsheetsResource(Discovery discovery) {
+		// TODO
+		this.discovery = discovery;
+	}
 
 	@Override
 	public String createSpreadsheet(Spreadsheet sheet, String password) {
@@ -233,4 +240,7 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 		return false;
 	}
 
+	private String discoverySearch() {
+		
+	}
 }

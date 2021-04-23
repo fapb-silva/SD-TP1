@@ -20,7 +20,7 @@ public class SpreadsheetServer {
 	}
 	
 	public static final int PORT = 8080;
-	public static final String SERVICE = "UsersService";
+	public static final String SERVICE = "SpreadsheetServerService";
 	
 	
 	public static void main(String[] args) {

@@ -3,7 +3,6 @@ package tp1.server.resources;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -20,7 +19,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import tp1.api.Spreadsheet;
-import tp1.api.User;
 import tp1.api.service.rest.RestSpreadsheets;
 import tp1.api.service.rest.RestUsers;
 import tp1.server.Discovery;
@@ -36,49 +34,48 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 	private final Map<String,Spreadsheet> sheets = new HashMap<String, Spreadsheet>();
 	private Discovery discovery;
 	private String domain;
+	private int ID;
 	
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
 
 	public SpreadsheetsResource(Discovery discovery, String domain) {
-		// TODO
+		this.ID = 0;
 		this.discovery = discovery;
 		this.domain = domain;
 	}
 
 	@Override
 	public String createSpreadsheet(Spreadsheet sheet, String password) {
-		// TODO Henrique
+		
 		Log.info("createSpreadsheet : " + sheet);
 		
-		
-		// Check if sheet is valid, if not return HTTP BAD_REQUEST (400)
-		if (sheet.getSheetId() == null) {
-			Log.info("Spreadsheet object invalid.");
+		// 400 - sheet null
+		if (sheet == null) {
+			Log.info("Spreadsheet object null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		
 		
-		//missing checks
-		
+		// 400 - password invalid valid
+		if (!checkPassword(sheet.getOwner(), password)) {
+			Log.info("Invalid password.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+			
 		
 		synchronized (this) {
-			/*-----------------------------------------
-			//synchronized???passcheck??
-			// Check if password valid, if not return HTTP BAD_REQUEST (400)
-			if (GetUserClient == password) {
-				Log.info("Spreadsheet object invalid.");
-				throw new WebApplicationException(Status.BAD_REQUEST);
-			}
-			*/
-			// Check if userId does not exist exists, if not return HTTP CONFLICT (409)
-			if (sheets.containsKey(sheet.getSheetId())) {
-				Log.info("sheet already exists.");
-				throw new WebApplicationException(Status.BAD_REQUEST);
-			}
+			
+//			// Check if userId does not exist exists, if not return HTTP CONFLICT (400)
+//			if (sheets.containsKey(sheet.getSheetId())) {
+//				Log.info("sheet already exists.");
+//				throw new WebApplicationException(Status.BAD_REQUEST);
+//			}
 
 			// Add the sheet to the map of users
-
-			sheets.put(sheet.getSheetId(), sheet);
+			String newSheetId = "" + ID++; 
+			sheet.setSheetId(newSheetId);
+			//sheet.setSheetURL();
+			sheets.put(newSheetId, sheet);
 		}		
 		
 		return sheet.getSheetId();
@@ -86,35 +83,43 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 
 	@Override
 	public void deleteSpreadsheet(String sheetId, String password) {
-		// TODO Henrique
 		
 		//400 - incorrect values
 		if (sheetId == null || password == null) {
 			Log.info("UserId or passwrod null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-		/*--------------------------------
-		// Check if password valid, if not return HTTP BAD_REQUEST (400)
-		if (GetUserClient.getPassword == password) {
-			Log.info("Spreadsheet object invalid.");
-			throw new WebApplicationException(Status.FORBIDDEN);
+		
+		Spreadsheet sheet;
+		
+		synchronized (this) {//searches for sheet
+			
+			sheet = sheets.get(sheetId);
+			
 		}
-		*/
-		//if sheetId is not stored throw
-		if(!sheets.containsKey(sheetId)) {
+		
+		// 404 - sheet doesnt exist
+		if(sheet == null) {
 			Log.info("Sheet does not exist.");
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 		
-		sheets.remove(sheetId);
+		// 403 - wrong password
+		if (checkPassword(sheet.getOwner(), password)) {
+			Log.info("Spreadsheet object invalid.");
+			throw new WebApplicationException(Status.FORBIDDEN);
+		}
 		
-		throw new WebApplicationException(Status.NO_CONTENT);
+		synchronized (this) {// 204 - removes sheet
+			
+			sheets.remove(sheetId);
+			
+		}
 		
 	}
 
 	@Override
 	public Spreadsheet getSpreadsheet(String sheetId, String userId, String password) {
-		// TODO Henrique
 		
 		//400 - incorrect values
 		if (sheetId == null || password == null || userId == null) {
@@ -122,31 +127,35 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		
-		// 404 - not_found
-		synchronized (this) {
+		Spreadsheet sheet;
 		
-			//if sheetId is not stored throw
-			if(!sheets.containsKey(sheetId) /*|| GetUserClient == null*/) {
-				Log.info("Sheet does not exist.");
-				throw new WebApplicationException(Status.NOT_FOUND);
-			}
+		synchronized (this) {//searches for sheet
+			
+			sheet = sheets.get(sheetId);
 			
 		}
-		/*
-		// 403 - incorrect password
-		if (GetUserClient.getPassword == password) {
+		
+		// 404 - sheet doesnt exist
+		if(sheet == null) {
+			Log.info("Sheet does not exist.");
+			throw new WebApplicationException(Status.NOT_FOUND);
+		}
+		
+		// 403 - wrong password
+		if (checkPassword(sheet.getOwner(), password)) {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
-		*/
 		
+		synchronized (this) {
 		
-		return sheets.get(sheetId);//send200?
+			return sheets.get(sheetId);//send 200?
+		
+		}
 	}
 
 	@Override
 	public String[][] getSpreadsheetValues(String sheetId, String userId, String password) {
-		// TODO 
 		
 		//400 - incorrect values
 		if (sheetId == null || password == null || userId == null) {
@@ -154,27 +163,29 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		
-		// 404 - not_found
 		Spreadsheet sheet;
-		synchronized (this) {
+		
+		synchronized (this) {//searches for sheet
 			
-			//if sheetId is not stored throw
-			if(!sheets.containsKey(sheetId)/* || GetUserClient == null*/) {
-				Log.info("Sheet does not exist.");
-				throw new WebApplicationException(Status.NOT_FOUND);
-			}else 
-				sheet = sheets.get(sheetId);  
+			sheet = sheets.get(sheetId);
 			
+		}
+		
+		// 404 - sheet doesnt exist
+		if(sheet == null) {
+			Log.info("Sheet does not exist.");
+			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 		
 		// 403 - user not shared, user not owner, incorrect pass
-		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId /*|| GetUserClient.getPassword == password*/) {
-			Log.info("Spreadsheet object invalid.");
+		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId || !checkPassword(userId, password)) {
+			Log.info("Spreadsheet id object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
 		
-		// 200 - sucess
+		// 200 - success
 		return sheet.getRawValues();
+		
 	}
 
 	@Override
@@ -248,5 +259,57 @@ public class SpreadsheetsResource implements RestSpreadsheets{
         return uriList[0];
         
         return null;
+    }
+	
+	private boolean userExists(String userId) {
+
+        ClientConfig config = new ClientConfig();
+        // how much time until we timeout when opening the TCP connection to the server
+        config.property(ClientProperties.CONNECT_TIMEOUT, CONNECTION_TIMEOUT);
+        // how much time do we wait for the reply of the server after sending the
+        // request
+        config.property(ClientProperties.READ_TIMEOUT, REPLY_TIMEOUT);
+        Client client = ClientBuilder.newClient(config);
+        int delimiter = userId.indexOf('@');
+        String user, userDomain;
+        if(delimiter!=-1) {
+            user = userId.substring(0,delimiter);
+            userDomain = userId.substring(delimiter+1);
+        }
+        user = userId;
+        userDomain = domain;
+        URI serverUrl = discoverySearch(userDomain + ":Users");
+        WebTarget target = client.target(serverUrl).path(RestUsers.PATH);
+
+        short retries = 0;
+
+        while (retries < MAX_RETRIES) {
+
+            try {
+                Response r = target.path("/").queryParam("query", user).request().accept(MediaType.APPLICATION_JSON)
+                        .get();
+
+                if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
+                    List<User> users = r.readEntity(new GenericType<List<User>>() {
+                    });
+                    for(User thisUser : users) {
+                        if(thisUser.getUserId() == user) return true;
+                    }
+                }
+
+            } catch (ProcessingException pe) {
+
+                retries++;
+                try {
+                    Thread.sleep(RETRY_PERIOD);
+                } catch (InterruptedException e) {
+                    // nothing to be done here, if this happens we will just retry sooner.
+                }
+
+            }
+
+        }
+        //
+        return false;
     }
 }

@@ -3,6 +3,7 @@ package tp1.server.resources;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -15,10 +16,12 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import tp1.api.Spreadsheet;
+import tp1.api.User;
 import tp1.api.service.rest.RestSpreadsheets;
 import tp1.api.service.rest.RestUsers;
 import tp1.server.Discovery;
@@ -201,12 +204,16 @@ public class SpreadsheetsResource implements RestSpreadsheets{
 
 	@Override
 	public void shareSpreadsheet(String sheetId, String userId, String password) {
-		//-----Checks 
-		
-		
+		// -----Checks
+		if (sheetId == null || userId == null || password == null) {
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		synchronized (this) {
+
+		}
+
 		// 200 - sucess
-		
-		
+
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class UsersResource implements RestUsers {
 		if (user.getUserId() == null || user.getPassword() == null || user.getFullName() == null
 				|| user.getEmail() == null) {
 			Log.info("User object invalid.");
-			throw new WebApplicationException(Status.CONFLICT);
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 		synchronized (this) {
@@ -55,9 +55,9 @@ public class UsersResource implements RestUsers {
 		Log.info("getUser : user = " + userId + "; pwd = " + password);
 
 		// Check if user is valid, if not return HTTP CONFLICT (409)
-		if (userId == null || password == null) {
-			Log.info("UserId or passwrod null.");
-			throw new WebApplicationException(Status.CONFLICT);
+		if (userId == null) {
+			Log.info("UserId is null.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		User user;
 
@@ -84,9 +84,9 @@ public class UsersResource implements RestUsers {
 	public User updateUser(String userId, String password, User user) {
 		Log.info("updateUser : user = " + userId + "; pwd = " + password + " ; user = " + user);
 		// TODO Complete method
-		if (userId == null || password == null) {
-			Log.info("UserId or passwrod null.");
-			throw new WebApplicationException(Status.CONFLICT);
+		if (userId == null) {
+			Log.info("UserId is null.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 		User userToUpdate;
@@ -124,9 +124,9 @@ public class UsersResource implements RestUsers {
 		Log.info("deleteUser : user = " + userId + "; pwd = " + password);
 		// TODO Complete method
 		// Check if user is valid, if not return HTTP CONFLICT (409)
-		if (userId == null || password == null) {
-			Log.info("UserId or passwrod null.");
-			throw new WebApplicationException(Status.CONFLICT);
+		if (userId == null) {
+			Log.info("UserId null.");
+			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
 		User user;
@@ -153,6 +153,9 @@ public class UsersResource implements RestUsers {
 	@Override
 	public List<User> searchUsers(String pattern) {
 		Log.info("searchUsers : pattern = " + pattern);
+		if(pattern==null) {
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
 		// TODO Complete method
 		List<User> matchingUsers = new ArrayList<User>();
 		synchronized (this) {

@@ -57,7 +57,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 400 - password invalid valid
-		if (userAuth(sheet.getOwner(), password)!=1) {
+		if (userAuth(sheet.getOwner(), password) != 1) {
 			Log.info("Invalid password.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
@@ -73,7 +73,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			// Add the sheet to the map of users
 			String newSheetId = "" + ID++;
 			sheet.setSheetId(newSheetId);
-			sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g - "http://srv1:8080/rest/sheets/4684354
+			sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g -
+																										// "http://srv1:8080/rest/sheets/4684354
 			sheets.put(newSheetId, sheet);
 		}
 
@@ -104,7 +105,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 403 - wrong password
-		if (userAuth(sheet.getOwner(), password)==0) {
+		if (userAuth(sheet.getOwner(), password) == 0) {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
@@ -125,7 +126,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			Log.info("SheetId, UserId or passwrod null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-		
+
 		Spreadsheet sheet;
 
 		synchronized (this) {// searches for sheet
@@ -140,14 +141,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
-		
 		int auth = userAuth(sheet.getOwner(), password);
-		if (auth==0) {// 403 - wrong password
+		if (auth == 0) {// 403 - wrong password
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
-		}else
-			if(auth==-1) { // 404 - userId doesnt exist
-				throw new WebApplicationException(Status.NOT_FOUND);
+		} else if (auth == -1) { // 404 - userId doesnt exist
+			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
 		synchronized (this) {
@@ -181,7 +180,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 403 - user not shared, user not owner, incorrect pass
-		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId || userAuth(userId, password)!=1) {
+		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId || userAuth(userId, password) != 1) {
 			Log.info("Spreadsheet id object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
@@ -192,93 +191,91 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	}
 
 	public void updateCell(String sheetId, String cell, String rawValue, String userId, String password) {
-        // -----Checks
-        //If Ids are null
-        if (sheetId == null || userId == null || cell == null) {
-            throw new WebApplicationException(Status.BAD_REQUEST);
-        }
-        synchronized (this) {
-            //If sheets do not exist
-            if (!sheets.containsKey(sheetId))
-                throw new WebApplicationException(Status.NOT_FOUND);
-            Spreadsheet sheet = sheets.get(sheetId);
-            String owner = sheet.getOwner();
-            //If password does not match owners password
-            if(userAuth(owner,password)!=1)
-                throw new WebApplicationException(Status.FORBIDDEN);
-            //If user has no permission
-            if (owner != userId && !sheet.getSharedWith().contains(userId + "@" + domain))
-                throw new WebApplicationException(Status.BAD_REQUEST);
-            sheet.setCellRawValue(cell, rawValue);
+		// -----Checks
+		// If Ids are null
+		if (sheetId == null || userId == null || cell == null) {
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		synchronized (this) {
+			// If sheets do not exist
+			if (!sheets.containsKey(sheetId))
+				throw new WebApplicationException(Status.NOT_FOUND);
+			Spreadsheet sheet = sheets.get(sheetId);
+			String owner = sheet.getOwner();
+			// If password does not match owners password
+			if (userAuth(owner, password) != 1)
+				throw new WebApplicationException(Status.FORBIDDEN);
+			// If user has no permission
+			if (owner != userId && !sheet.getSharedWith().contains(userId + "@" + domain))
+				throw new WebApplicationException(Status.BAD_REQUEST);
+			sheet.setCellRawValue(cell, rawValue);
 
-        }
+		}
 
-        
-    }
+	}
 
 	public void shareSpreadsheet(String sheetId, String userId, String password) {
-        // -----Checks
-        // If null ids or no @
-        if (sheetId == null || userId == null || !userId.contains("@")) {
-            throw new WebApplicationException(Status.BAD_REQUEST);
-        }
-        synchronized (this) {
-            // If ids do not exist
-            if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
-                throw new WebApplicationException(Status.NOT_FOUND);
-            Spreadsheet thisSheet = sheets.get(sheetId);
-            String ownerId = thisSheet.getOwner();
-            // If user to share is owner
-            if (ownerId + "@" + domain == userId)
-                throw new WebApplicationException(Status.BAD_REQUEST);
-            int auth = userAuth(ownerId, password);
-            // If password is wrong
-            if (auth == 0)
-                throw new WebApplicationException(Status.FORBIDDEN);
-            else if (auth == 1) {
-                Set<String> shared = thisSheet.getSharedWith();
-                // if already shared
-                if (shared.contains(userId))
-                    throw new WebApplicationException(Status.CONFLICT);
-                shared.add(userId);
-            }
-        }
+		// -----Checks
+		// If null ids or no @
+		if (sheetId == null || userId == null || !userId.contains("@")) {
+			throw new WebApplicationException(Status.BAD_REQUEST);
+		}
+		synchronized (this) {
+			// If ids do not exist
+			if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
+				throw new WebApplicationException(Status.NOT_FOUND);
+			Spreadsheet thisSheet = sheets.get(sheetId);
+			String ownerId = thisSheet.getOwner();
+			// If user to share is owner
+			if (ownerId + "@" + domain == userId)
+				throw new WebApplicationException(Status.BAD_REQUEST);
+			int auth = userAuth(ownerId, password);
+			// If password is wrong
+			if (auth == 0)
+				throw new WebApplicationException(Status.FORBIDDEN);
+			else if (auth == 1) {
+				Set<String> shared = thisSheet.getSharedWith();
+				// if already shared
+				if (shared.contains(userId))
+					throw new WebApplicationException(Status.CONFLICT);
+				shared.add(userId);
+			}
+		}
 
-    }
+	}
 
 	public void unshareSpreadsheet(String sheetId, String userId, String password) {
-        { // -----Checks
-            // If null ids or no @
-            if (sheetId == null || userId == null || !userId.contains("@")) {
-                throw new WebApplicationException(Status.BAD_REQUEST);
-            }
-            synchronized (this) {
-                // If ids do not exist
-                if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
-                    throw new WebApplicationException(Status.NOT_FOUND);
-                Spreadsheet thisSheet = sheets.get(sheetId);
-                String ownerId = thisSheet.getOwner();
-                // If user to share is owner
-                if (ownerId + "@" + domain == userId)
-                    throw new WebApplicationException(Status.BAD_REQUEST);
-                int auth = userAuth(ownerId, password);
-                // If password is wrong
-                if (auth == 0)
-                    throw new WebApplicationException(Status.FORBIDDEN);
-                else if (auth == 1) {
-                    Set<String> shared = thisSheet.getSharedWith();
-                    // if already shared
-                    if (!shared.contains(userId))
-                        throw new WebApplicationException(Status.NOT_FOUND);
-                    shared.remove(userId);
-                }
-            }
+		{ // -----Checks
+			// If null ids or no @
+			if (sheetId == null || userId == null || !userId.contains("@")) {
+				throw new WebApplicationException(Status.BAD_REQUEST);
+			}
+			synchronized (this) {
+				// If ids do not exist
+				if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
+					throw new WebApplicationException(Status.NOT_FOUND);
+				Spreadsheet thisSheet = sheets.get(sheetId);
+				String ownerId = thisSheet.getOwner();
+				// If user to share is owner
+				if (ownerId + "@" + domain == userId)
+					throw new WebApplicationException(Status.BAD_REQUEST);
+				int auth = userAuth(ownerId, password);
+				// If password is wrong
+				if (auth == 0)
+					throw new WebApplicationException(Status.FORBIDDEN);
+				else if (auth == 1) {
+					Set<String> shared = thisSheet.getSharedWith();
+					// if already shared
+					if (!shared.contains(userId))
+						throw new WebApplicationException(Status.NOT_FOUND);
+					shared.remove(userId);
+				}
+			}
 
-        }
+		}
 
-    }
+	}
 
-	
 	private URI discoverySearch(String service) {
 		URI[] uriList = discovery.knownUrisOf(service);
 		if (uriList.length > 0)
@@ -287,11 +284,9 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		return null;
 	}
 
-	
 	/*
-	 * Return 1: User exists, correct password;
-	 * 		  0: User exists, wrong password;
-	 * 		 -1: User does not exist, or other
+	 * Return 1: User exists, correct password; 0: User exists, wrong password; -1:
+	 * User does not exist, or other
 	 */
 	private int userAuth(String userId, String password) {
 
@@ -307,9 +302,10 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		if (delimiter != -1) {
 			user = userId.substring(0, delimiter);
 			userDomain = userId.substring(delimiter + 1);
+		} else {
+			user = userId;
+			userDomain = domain;
 		}
-		user = userId;
-		userDomain = domain;
 		URI serverUrl = discoverySearch(userDomain + ":Users");
 		WebTarget target = client.target(serverUrl).path(RestUsers.PATH);
 
@@ -322,9 +318,9 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 						.accept(MediaType.APPLICATION_JSON).get();
 
 				// User u = r.readEntity(User.class);
-				if(r.getStatus() == Status.FORBIDDEN.getStatusCode())
+				if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
 					return 0;
-				if(r.getStatus() == Status.OK.getStatusCode() && r.hasEntity())
+				if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity())
 					return 1;
 
 			} catch (ProcessingException pe) {

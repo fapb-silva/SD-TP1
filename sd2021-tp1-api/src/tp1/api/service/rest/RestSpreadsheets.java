@@ -92,7 +92,7 @@ public interface RestSpreadsheets {
 	 * @param sheetId - the spreadsheet whose values are being retrieved.
 	 * @param cell - the cell being updated
 	 * @param rawValue - the new raw value of the cell
-	 * @param password - the password of the owner of the spreadsheet
+	 * @param password - The password of the user performing the operation.
 	 * 
 	 * @return 204, if the operation was successful
 	 * 		  404, if no spreadsheet exists with the given sheetid

@@ -195,7 +195,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	public void updateCell(String sheetId, String cell, String rawValue, String userId, String password) {
 		// -----Checks
 		// If Ids are null
-		if (sheetId == null || userId == null || cell == null || userAuth(userId, "") == -1) {
+		int auth = userAuth(userId, password);
+		if (sheetId == null || userId == null || cell == null || auth ==-1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		synchronized (this) {
@@ -203,9 +204,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			if (!sheets.containsKey(sheetId))
 				throw new WebApplicationException(Status.NOT_FOUND);
 			Spreadsheet sheet = sheets.get(sheetId);
-			String owner = sheet.getOwner();
 			// If password does not match owners password
-			if (userAuth(owner, password) != 1)
+			if (auth==0)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
 			// if (owner != userId && !sheet.getSharedWith().contains(userId + "@" +

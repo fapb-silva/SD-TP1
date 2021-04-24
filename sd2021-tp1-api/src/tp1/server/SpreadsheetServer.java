@@ -20,13 +20,14 @@ public class SpreadsheetServer {
 	}
 	
 	public static final int PORT = 8080;
-	public static final String SERVICE = "Sheets";
+	public static final String SERVICE = "sheets";
 	
 	
 	public static void main(String[] args) {
 		try {
 		String domain = args[0];
-		String ip = InetAddress.getLocalHost().getHostAddress();
+		//String ip = InetAddress.getLocalHost().getHostAddress();
+		String ip = SERVICE+"."+domain;
 		String serverURI = String.format("http://%s:%s/rest", ip, PORT);	
 		
 		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, domain +":"+ SERVICE, serverURI);

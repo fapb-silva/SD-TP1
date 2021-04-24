@@ -318,7 +318,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		while (retries < MAX_RETRIES) {
 
 			try {
-				Response r = target.path(userId).queryParam("password", password).request()
+				Response r = target.path(user).queryParam("password", password).request()
 						.accept(MediaType.APPLICATION_JSON).get();
 
 				// User u = r.readEntity(User.class);

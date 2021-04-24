@@ -144,11 +144,14 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 
-			int auth = userAuth(sheet.getOwner(), password);
+			int auth = userAuth(userId, password);
 			if (auth == 0) {// 403 - wrong password
+				
 				Log.info("Spreadsheet object invalid.");
 				throw new WebApplicationException(Status.FORBIDDEN);
+				
 			} else if (auth == -1) { // 404 - userId doesnt exist
+				
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 		}

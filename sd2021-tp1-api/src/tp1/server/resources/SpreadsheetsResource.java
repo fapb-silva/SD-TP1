@@ -40,7 +40,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
 
 	public SpreadsheetsResource(Discovery discovery, String domain) {
-		this.ID = 0;
+		this.ID = 1;
 		this.discovery = discovery;
 		this.domain = domain;
 	}
@@ -104,7 +104,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 403 - wrong password
-		if (userAuth(sheet.getOwner(), password) == 0) {
+		if ( password == null || userAuth(sheet.getOwner(), password) == 0) {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}

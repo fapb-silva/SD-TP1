@@ -20,12 +20,13 @@ public class UsersServer {
 	}
 	
 	public static final int PORT = 8080;
-	public static final String SERVICE = "Users";
+	public static final String SERVICE = "users";
 	
 	public static void main(String[] args) {
 		try {
 		String domain = args[0];
-		String ip = InetAddress.getLocalHost().getHostAddress();
+		//String ip = InetAddress.getLocalHost().getHostAddress();
+		String ip = SERVICE+"."+domain;
 			
 		ResourceConfig config = new ResourceConfig();
 		config.register(UsersResource.class);

@@ -2,6 +2,7 @@ package tp1.server.resources;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -36,6 +37,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	public static final int PORT = 8080;
 
 	private final Map<String, Spreadsheet> sheets = new HashMap<String, Spreadsheet>();
+	private final Map<String, Set<String>> usersList = new HashMap<String, Set<String>>();
+	private final Map<String, Set<String>> sharedList = new HashMap<String, Set<String>>();
 	private Discovery discovery;
 	private String domain;
 	private String uri;
@@ -65,12 +68,18 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 400 - password invalid valid
-		if (userAuth(sheet.getOwner(), password) != 1) {
+		String owner = sheet.getOwner();
+		if (userAuth(owner, password) != 1) {
 			Log.info("Invalid password.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-
 		String newSheetId = "" + ID++;
+		synchronized (this) {
+			if (!usersList.containsKey(owner))
+				usersList.put(owner, new HashSet<String>());
+
+			usersList.get(owner).add(newSheetId);
+		}
 		sheet.setSheetId(newSheetId);
 		sheet.setSheetURL(String.format("%s/rest/sheets/%s", uri, newSheetId));
 		// e.g - "http://srv1:8080/rest/sheets/4684354
@@ -95,6 +104,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		Spreadsheet sheet;
+		String owner;
 
 		synchronized (this) {// searches for sheet
 
@@ -111,18 +121,31 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				Log.info("Pass null.");
 				throw new WebApplicationException(Status.FORBIDDEN);
 			}
-
-			int auth = userAuth(sheet.getOwner(), password);
+			owner = sheet.getOwner();
+			int auth = userAuth(owner, password);
 			if (auth == 0) {// 403 - wrong password
 				Log.info("Spreadsheet object invalid.");
 				throw new WebApplicationException(Status.FORBIDDEN);
 			} else if (auth == -1) { // 404 - userId doesnt exist
+				removeUsersSpreadsheet(owner);
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 
 			// 204 - removes sheet
 
 			sheets.remove(sheetId);
+			if (usersList.containsKey(owner)) {
+				if (usersList.get(owner).contains(sheetId))
+					usersList.get(owner).remove(sheetId);
+			}
+			Set<String> shared = sheet.getSharedWith();
+			for (String thisShare : shared) {
+				if (sharedList.containsKey(thisShare)) {
+					if (sharedList.get(thisShare).contains(sheetId))
+						sharedList.get(thisShare).remove(sheetId);
+				}
+
+			}
 
 		}
 
@@ -139,6 +162,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		Spreadsheet sheet;
 		int auth;
+		String owner;
 
 		synchronized (this) {// searches for sheet
 
@@ -147,6 +171,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			// 404 - sheet doesnt exist
 			if (sheet == null) {
 				Log.info("Sheet does not exist.");
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
+
+			owner = sheet.getOwner();
+			if (userAuth(owner, "") == -1) {
+				removeUsersSpreadsheet(owner);
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 
@@ -162,7 +192,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			throw new WebApplicationException(Status.FORBIDDEN);
 
 		} else if (auth == -1) { // 404 - userId doesnt exist
-
+			removeUsersSpreadsheet(userId);
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
@@ -180,6 +210,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		Spreadsheet sheet;
 		String[][] values;
+		String owner;
 
 		synchronized (this) {// searches for sheet
 
@@ -191,7 +222,14 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		// 404 - sheet doesnt exist
 		if (sheet == null || auth == -1) {
+			if (auth == -1)
+				removeUsersSpreadsheet(userId);
 			Log.info("Sheet does not exist.");
+			throw new WebApplicationException(Status.NOT_FOUND);
+		}
+		owner = sheet.getOwner();
+		if (userAuth(owner, "") == -1) {
+			removeUsersSpreadsheet(owner);
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
@@ -240,7 +278,6 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 					Client client = ClientBuilder.newClient(config);
 					WebTarget target = client.target(sheetURL);
 					short retries = 0;
-					
 
 					while (retries < MAX_RETRIES) {
 
@@ -268,7 +305,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 						}
 
-					}throw new WebApplicationException(Status.BAD_REQUEST);
+					}
+					throw new WebApplicationException(Status.BAD_REQUEST);
 				}
 			});
 		} catch (Exception e) {
@@ -284,19 +322,27 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		// If Ids are null
 		int auth = userAuth(userId, password);
 		if (sheetId == null || userId == null || cell == null || auth == -1) {
+			if (auth == -1)
+				removeUsersSpreadsheet(userId);
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		Spreadsheet sheet;
+		String owner;
 		synchronized (this) {
 			// If sheets do not exist
 			if (!sheets.containsKey(sheetId))
 				throw new WebApplicationException(Status.NOT_FOUND);
 			sheet = sheets.get(sheetId);
+			owner = sheet.getOwner();
+			if (userAuth(owner, "") == -1) {
+				removeUsersSpreadsheet(owner);
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 			// If password does not match owners password
 			if (auth == 0)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
-			if (!userId.equals(sheet.getOwner()) && !sheet.getSharedWith().contains(userId + "@" + domain))
+			if (!userId.equals(owner) && !sheet.getSharedWith().contains(userId + "@" + domain))
 				throw new WebApplicationException(Status.FORBIDDEN);
 			sheet.setCellRawValue(cell, rawValue);
 
@@ -312,10 +358,16 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 		synchronized (this) {
 			// If ids do not exist
-			if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
+			if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId)) {
+				removeUsersSpreadsheet(userId);
 				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 			Spreadsheet thisSheet = sheets.get(sheetId);
 			String ownerId = thisSheet.getOwner();
+			if (userAuth(ownerId, "") == -1) {
+				removeUsersSpreadsheet(ownerId);
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 			// If user to share is owner
 			if (userId.equals(ownerId + "@" + domain))
 				throw new WebApplicationException(Status.BAD_REQUEST);
@@ -329,6 +381,9 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				if (shared.contains(userId))
 					throw new WebApplicationException(Status.CONFLICT);
 				shared.add(userId);
+				if (!sharedList.containsKey(userId))
+					sharedList.put(userId, new HashSet<String>());
+				sharedList.get(userId).add(sheetId);
 			}
 		}
 
@@ -342,10 +397,16 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 			synchronized (this) {
 				// If ids do not exist
-				if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId))
+				if (userAuth(userId, "") == -1 || !sheets.containsKey(sheetId)) {
+					removeUsersSpreadsheet(userId);
 					throw new WebApplicationException(Status.NOT_FOUND);
+				}
 				Spreadsheet thisSheet = sheets.get(sheetId);
 				String ownerId = thisSheet.getOwner();
+				if (userAuth(ownerId, "") == -1) {
+					removeUsersSpreadsheet(ownerId);
+					throw new WebApplicationException(Status.NOT_FOUND);
+				}
 				// If user to share is owner
 				if (userId.equals(ownerId + "@" + domain))
 					throw new WebApplicationException(Status.BAD_REQUEST);
@@ -359,6 +420,10 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 					if (!shared.contains(userId))
 						throw new WebApplicationException(Status.NOT_FOUND);
 					shared.remove(userId);
+					if (sharedList.containsKey(userId))
+						if (sharedList.get(userId).contains(sheetId))
+							sharedList.get(userId).remove(sheetId);
+
 				}
 			}
 
@@ -372,6 +437,26 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			return uriList[0];
 
 		return null;
+	}
+
+	private void removeUsersSpreadsheet(String userId) {
+
+		if (usersList.containsKey(userId)) {
+			Set<String> usersSheets = usersList.get(userId);
+			Set<String> sharedSheets = sharedList.get(userId);
+			for (String thisSheet : usersSheets) {
+				if (sheets.containsKey(thisSheet))
+					sheets.remove(thisSheet);
+			}
+			for (String thisSheet : sharedSheets) {
+				if (sheets.containsKey(thisSheet))
+					if (sheets.get(thisSheet).getSharedWith().contains(userId))
+						sheets.get(thisSheet).getSharedWith().remove(userId);
+			}
+			sharedList.remove(userId);
+			usersList.remove(userId);
+
+		}
 	}
 
 	/*

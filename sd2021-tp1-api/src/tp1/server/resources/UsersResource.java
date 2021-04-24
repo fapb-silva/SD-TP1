@@ -1,10 +1,10 @@
 package tp1.server.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import jakarta.inject.Singleton;
@@ -159,10 +159,11 @@ public class UsersResource implements RestUsers {
 		// TODO Complete method
 		List<User> matchingUsers = new ArrayList<User>();
 		synchronized (this) {
-			Set<String> resultSet = users.keySet();
-			for (String id : resultSet) {
-				if (id.contains(pattern)) {
-					User userToAdd = users.get(id);
+			Collection<User> usersSet = users.values();
+			for (User user : usersSet) {
+				String fullName = user.getFullName();
+				if (fullName.contains(pattern)) {
+					User userToAdd = user;
 					userToAdd.setPassword("");
 					matchingUsers.add(userToAdd);
 				}

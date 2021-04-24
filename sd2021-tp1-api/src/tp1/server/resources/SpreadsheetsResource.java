@@ -24,7 +24,6 @@ import tp1.api.service.rest.RestSpreadsheets;
 import tp1.api.service.rest.RestUsers;
 import tp1.impl.engine.SpreadsheetEngineImpl;
 import tp1.server.Discovery;
-import tp1.util.CellRange;
 
 @Singleton
 public class SpreadsheetsResource implements RestSpreadsheets {
@@ -73,7 +72,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
 		sheet.setSheetURL(String.format("%s/rest/sheets/%s", uri, newSheetId));
-		// e.g - "http://srv1:8080/rest/sheets/4684354
+		// 						  e.g - "http://srv1:8080/rest/sheets/4684354
 
 		synchronized (this) {
 
@@ -151,21 +150,22 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 
 			auth = userAuth(userId, password);
-
+			
 			// 403 - wrong password
-			if (!sheet.getOwner().equals(userId) && !sheet.getSharedWith().contains(userId + "@" + domain))
+			if (!sheet.getOwner().equals(userId) && !sheet.getSharedWith().contains(userId + "@" +
+					domain))
+					 throw new WebApplicationException(Status.FORBIDDEN);
+		}
+			if (auth == 0) {// 403 - wrong password
+				
+				Log.info("Spreadsheet object invalid.");
 				throw new WebApplicationException(Status.FORBIDDEN);
-		}
-		if (auth == 0) {// 403 - wrong password
-
-			Log.info("Spreadsheet object invalid.");
-			throw new WebApplicationException(Status.FORBIDDEN);
-
-		} else if (auth == -1) { // 404 - userId doesnt exist
-
-			throw new WebApplicationException(Status.NOT_FOUND);
-		}
-
+				
+			} else if (auth == -1) { // 404 - userId doesnt exist
+				
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
+		
 		return sheet;// send 200?
 	}
 
@@ -186,9 +186,9 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			sheet = sheets.get(sheetId);
 
 		}
-
+		
 		int auth = userAuth(userId, password);
-
+		
 		// 404 - sheet doesnt exist
 		if (sheet == null || auth == -1) {
 			Log.info("Sheet does not exist.");
@@ -202,76 +202,34 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 200 - success
-
+		
 		try {
-			values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
-				@Override
-				public int rows() {
-					return sheet.getRows();
+		 values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
+			@Override
+			public int rows() {
+				return sheet.getRows();
+			}
+			@Override
+			public int columns() {
+				return sheet.getColumns();
+			}
+			@Override
+			public String sheetId() {
+				return sheet.getSheetId();
+			}
+			@Override
+			public String cellRawValue(int row, int col) {
+				try {
+					return sheet.getRawValues()[row][col];
+				} catch (IndexOutOfBoundsException e) {
+					return "#ERROR?";
 				}
-
-				@Override
-				public int columns() {
-					return sheet.getColumns();
-				}
-
-				@Override
-				public String sheetId() {
-					return sheet.getSheetId();
-				}
-
-				@Override
-				public String cellRawValue(int row, int col) {
-					try {
-						return sheet.getRawValues()[row][col];
-					} catch (IndexOutOfBoundsException e) {
-						return "#ERROR?";
-					}
-				}
-
-				@Override
-				public String[][] getRangeValues(String sheetURL, String range) {
-					ClientConfig config = new ClientConfig();
-					// how much time until we timeout when opening the TCP connection to the server
-					config.property(ClientProperties.CONNECT_TIMEOUT, CONNECTION_TIMEOUT);
-					// how much time do we wait for the reply of the server after sending the
-					// request
-					config.property(ClientProperties.READ_TIMEOUT, REPLY_TIMEOUT);
-					Client client = ClientBuilder.newClient(config);
-					WebTarget target = client.target(sheetURL);
-					short retries = 0;
-					
-
-					while (retries < MAX_RETRIES) {
-
-						try {
-							Response r = target.queryParam("userId", userId).queryParam("password", password).request()
-									.accept(MediaType.APPLICATION_JSON).get();
-							if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
-								Spreadsheet remoteSheet = r.readEntity(Spreadsheet.class);
-								if (!remoteSheet.getSharedWith().contains(userId + "@" + domain))
-									throw new WebApplicationException(Status.FORBIDDEN);
-								CellRange valueRange = new CellRange(range);
-								return valueRange.extractRangeValuesFrom(remoteSheet.getRawValues());
-
-							}
-
-							retries++;
-						} catch (ProcessingException pe) {
-
-							retries++;
-							try {
-								Thread.sleep(RETRY_PERIOD);
-							} catch (InterruptedException e) {
-								// nothing to be done here, if this happens we will just retry sooner.
-							}
-
-						}
-
-					}throw new WebApplicationException(Status.BAD_REQUEST);
-				}
-			});
-		} catch (Exception e) {
+			}
+			@Override
+			public String[][] getRangeValues(String sheetURL, String range) {
+				return null;
+			}});}
+		catch(Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
@@ -283,7 +241,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		// -----Checks
 		// If Ids are null
 		int auth = userAuth(userId, password);
-		if (sheetId == null || userId == null || cell == null || auth == -1) {
+		if (sheetId == null || userId == null || cell == null || auth ==-1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		Spreadsheet sheet;
@@ -293,11 +251,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				throw new WebApplicationException(Status.NOT_FOUND);
 			sheet = sheets.get(sheetId);
 			// If password does not match owners password
-			if (auth == 0)
+			if (auth==0)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
-			if (!userId.equals(sheet.getOwner()) && !sheet.getSharedWith().contains(userId + "@" + domain))
-				throw new WebApplicationException(Status.FORBIDDEN);
+			// if (owner != userId && !sheet.getSharedWith().contains(userId + "@" +
+			// domain))
+			// throw new WebApplicationException(Status.BAD_REQUEST);
 			sheet.setCellRawValue(cell, rawValue);
 
 		}

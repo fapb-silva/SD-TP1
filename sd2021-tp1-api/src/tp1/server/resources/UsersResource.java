@@ -144,9 +144,13 @@ public class UsersResource implements RestUsers {
 				Log.info("Password is incorrect.");
 				throw new WebApplicationException(Status.FORBIDDEN);
 			}
+			
+			//start remove
 			users.remove(userId);
 		}
-
+		
+		
+		
 		return user;
 	}
 

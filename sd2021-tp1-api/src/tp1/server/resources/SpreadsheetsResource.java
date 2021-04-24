@@ -69,8 +69,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
-		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g -
-																									// "http://srv1:8080/rest/sheets/4684354
+		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));
+		// 						  e.g - "http://srv1:8080/rest/sheets/4684354
 
 		synchronized (this) {
 
@@ -222,7 +222,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 			@Override
 			public String[][] getRangeValues(String sheetURL, String range) {
-				return null;
+				return new String[1][1];
 			}});
 		return values;
 

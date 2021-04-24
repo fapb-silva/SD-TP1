@@ -37,14 +37,16 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	private final Map<String, Spreadsheet> sheets = new HashMap<String, Spreadsheet>();
 	private Discovery discovery;
 	private String domain;
+	private String uri;
 	private int ID;
 
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
 
-	public SpreadsheetsResource(Discovery discovery, String domain) {
+	public SpreadsheetsResource(Discovery discovery, String domain, String uri) {
 		this.ID = 0;
 		this.discovery = discovery;
 		this.domain = domain;
+		this.uri = uri;
 	}
 
 	@Override
@@ -69,7 +71,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
-		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));
+		sheet.setSheetURL(String.format("%s/rest/sheets/%s", uri, newSheetId));
 		// 						  e.g - "http://srv1:8080/rest/sheets/4684354
 
 		synchronized (this) {

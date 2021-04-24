@@ -236,7 +236,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			Spreadsheet thisSheet = sheets.get(sheetId);
 			String ownerId = thisSheet.getOwner();
 			// If user to share is owner
-			if (ownerId + "@" + domain == userId)
+			if (userId.equals(ownerId + "@" + domain))
 				throw new WebApplicationException(Status.BAD_REQUEST);
 			int auth = userAuth(ownerId, password);
 			// If password is wrong
@@ -266,7 +266,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				Spreadsheet thisSheet = sheets.get(sheetId);
 				String ownerId = thisSheet.getOwner();
 				// If user to share is owner
-				if (ownerId + "@" + domain == userId)
+				if (userId.equals(ownerId + "@" + domain))
 					throw new WebApplicationException(Status.BAD_REQUEST);
 				int auth = userAuth(ownerId, password);
 				// If password is wrong

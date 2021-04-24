@@ -224,7 +224,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 			@Override
 			public String[][] getRangeValues(String sheetURL, String range) {
-				return new String[1][1];
+				return new String[][]{{"A"},{"B"}};
 			}});
 		return values;
 

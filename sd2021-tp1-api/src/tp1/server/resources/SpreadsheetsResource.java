@@ -205,8 +205,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			if (userAuth(owner, password) != 1)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
-			if (owner != userId && !sheet.getSharedWith().contains(userId + "@" + domain))
-				throw new WebApplicationException(Status.BAD_REQUEST);
+			//if (owner != userId && !sheet.getSharedWith().contains(userId + "@" + domain))
+				//throw new WebApplicationException(Status.BAD_REQUEST);
 			sheet.setCellRawValue(cell, rawValue);
 
 		}

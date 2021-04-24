@@ -200,6 +200,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 200 - success
+		String sheetURL = "AB";
+		String range ="123";
 		
 		String[][] values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
 			@Override

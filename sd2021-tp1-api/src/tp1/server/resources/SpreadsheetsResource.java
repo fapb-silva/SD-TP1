@@ -234,7 +234,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 403 - user not shared, user not owner, incorrect pass
-		if (!sheet.getSharedWith().contains(userId + "@" + domain) && !sheet.getOwner().equals(userId) && auth == 0) {
+		if ((!sheet.getSharedWith().contains(userId + "@" + domain) && !sheet.getOwner().equals(userId)) || auth == 0) {
 			Log.info("Spreadsheet id object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}

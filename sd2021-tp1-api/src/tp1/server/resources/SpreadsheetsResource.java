@@ -179,13 +179,14 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		Spreadsheet sheet;
+		String[][] values;
 
 		synchronized (this) {// searches for sheet
 
 			sheet = sheets.get(sheetId);
 
 		}
-
+		
 		int auth = userAuth(userId, password);
 		
 		// 404 - sheet doesnt exist
@@ -202,8 +203,8 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		// 200 - success
 		
-		
-		String[][] values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
+		try {
+		 values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
 			@Override
 			public int rows() {
 				return sheet.getRows();
@@ -226,8 +227,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 			@Override
 			public String[][] getRangeValues(String sheetURL, String range) {
-				return new String[][]{{"A"},{"B"}};
-			}});
+				return null;
+			}});}
+		catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 		return values;
 
 	}

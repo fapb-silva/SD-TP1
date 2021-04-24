@@ -33,7 +33,7 @@ public class SpreadsheetServer {
 		Discovery discovery = new Discovery(Discovery.DISCOVERY_ADDR, domain +":"+ SERVICE, serverURI);
 		
 		ResourceConfig config = new ResourceConfig();
-		SpreadsheetsResource sheetResource = new SpreadsheetsResource(discovery, domain);
+		SpreadsheetsResource sheetResource = new SpreadsheetsResource(discovery, ip);
 		config.register(sheetResource);
 
 		JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);

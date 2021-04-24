@@ -40,7 +40,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	private static Logger Log = Logger.getLogger(SpreadsheetsResource.class.getName());
 
 	public SpreadsheetsResource(Discovery discovery, String domain) {
-		this.ID = 1;
+		this.ID = 0;
 		this.discovery = discovery;
 		this.domain = domain;
 	}
@@ -51,32 +51,32 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		Log.info("createSpreadsheet : " + sheet);
 
 		// 400 - sheet null
-		if (sheet == null || sheet.getSheetId() != null || sheet.getSheetURL() != null
-				|| sheet.getRows() <= 0 || sheet.getColumns() <= 0 || !sheet.getSharedWith().isEmpty()
-				|| sheet.getRows() != sheet.getRawValues().length || sheet.getColumns() != sheet.getRawValues()[0].length) {
+		if (sheet == null || sheet.getSheetId() != null || sheet.getSheetURL() != null || sheet.getRows() <= 0
+				|| sheet.getColumns() <= 0 || !sheet.getSharedWith().isEmpty()
+				|| sheet.getRows() != sheet.getRawValues().length
+				|| sheet.getColumns() != sheet.getRawValues()[0].length) {
 			Log.info("Spreadsheet object null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
-		
 		// 400 - password invalid valid
 		if (userAuth(sheet.getOwner(), password) != 1) {
 			Log.info("Invalid password.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-		
-		
+
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
-		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g - "http://srv1:8080/rest/sheets/4684354
-			
+		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g -
+																									// "http://srv1:8080/rest/sheets/4684354
+
 		synchronized (this) {
 
 			// Add the sheet to the map of users
 			sheets.put(newSheetId, sheet);
-			
+
 		}
-		
+
 		return sheet.getSheetId();
 	}
 
@@ -84,7 +84,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	public void deleteSpreadsheet(String sheetId, String password) {
 
 		// 400 - incorrect values
-		if (sheetId == null || password == null) {
+		if (sheetId == null) {
 			Log.info("UserId or passwrod null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
@@ -95,21 +95,27 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 			sheet = sheets.get(sheetId);
 
-		}
+			// 404 - sheet doesnt exist
+			if (sheet == null) {
+				Log.info("Sheet does not exist.");
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 
-		// 404 - sheet doesnt exist
-		if (sheet == null) {
-			Log.info("Sheet does not exist.");
-			throw new WebApplicationException(Status.NOT_FOUND);
-		}
+			// 403
+			if (password == null) {
+				Log.info("Pass null.");
+				throw new WebApplicationException(Status.FORBIDDEN);
+			}
 
-		// 403 - wrong password
-		if ( password == null || userAuth(sheet.getOwner(), password) == 0) {
-			Log.info("Spreadsheet object invalid.");
-			throw new WebApplicationException(Status.FORBIDDEN);
-		}
+			int auth = userAuth(sheet.getOwner(), password);
+			if (auth == 0) {// 403 - wrong password
+				Log.info("Spreadsheet object invalid.");
+				throw new WebApplicationException(Status.FORBIDDEN);
+			} else if (auth == -1) { // 404 - userId doesnt exist
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 
-		synchronized (this) {// 204 - removes sheet
+			// 204 - removes sheet
 
 			sheets.remove(sheetId);
 
@@ -132,27 +138,21 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 			sheet = sheets.get(sheetId);
 
+			// 404 - sheet doesnt exist
+			if (sheet == null) {
+				Log.info("Sheet does not exist.");
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
+
+			int auth = userAuth(sheet.getOwner(), password);
+			if (auth == 0) {// 403 - wrong password
+				Log.info("Spreadsheet object invalid.");
+				throw new WebApplicationException(Status.FORBIDDEN);
+			} else if (auth == -1) { // 404 - userId doesnt exist
+				throw new WebApplicationException(Status.NOT_FOUND);
+			}
 		}
-
-		// 404 - sheet doesnt exist
-		if (sheet == null) {
-			Log.info("Sheet does not exist.");
-			throw new WebApplicationException(Status.NOT_FOUND);
-		}
-
-		int auth = userAuth(sheet.getOwner(), password);
-		if (auth == 0) {// 403 - wrong password
-			Log.info("Spreadsheet object invalid.");
-			throw new WebApplicationException(Status.FORBIDDEN);
-		} else if (auth == -1) { // 404 - userId doesnt exist
-			throw new WebApplicationException(Status.NOT_FOUND);
-		}
-
-		synchronized (this) {
-
-			return sheets.get(sheetId);// send 200?
-
-		}
+		return sheet;// send 200?
 	}
 
 	@Override
@@ -192,7 +192,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	public void updateCell(String sheetId, String cell, String rawValue, String userId, String password) {
 		// -----Checks
 		// If Ids are null
-		if (sheetId == null || userId == null || cell == null || userAuth(userId,"")==-1) {
+		if (sheetId == null || userId == null || cell == null || userAuth(userId, "") == -1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		synchronized (this) {
@@ -205,8 +205,9 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			if (userAuth(owner, password) != 1)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
-			//if (owner != userId && !sheet.getSharedWith().contains(userId + "@" + domain))
-				//throw new WebApplicationException(Status.BAD_REQUEST);
+			// if (owner != userId && !sheet.getSharedWith().contains(userId + "@" +
+			// domain))
+			// throw new WebApplicationException(Status.BAD_REQUEST);
 			sheet.setCellRawValue(cell, rawValue);
 
 		}
@@ -315,11 +316,11 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			try {
 				Response r = target.path(user).queryParam("password", password).request()
 						.accept(MediaType.APPLICATION_JSON).get();
-				if(r.getStatus() == Status.NOT_FOUND.getStatusCode())
+				if (r.getStatus() == Status.NOT_FOUND.getStatusCode())
 					return -1;
 				// User u = r.readEntity(User.class);
 				if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
-					return 0; 
+					return 0;
 				if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity())
 					return 1;
 				retries++;

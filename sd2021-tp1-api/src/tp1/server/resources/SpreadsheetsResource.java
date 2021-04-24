@@ -72,7 +72,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
 		sheet.setSheetURL(String.format("%s/rest/sheets/%s", uri, newSheetId));
-		// e.g - "http://srv1:8080/rest/sheets/4684354
+		// 						  e.g - "http://srv1:8080/rest/sheets/4684354
 
 		synchronized (this) {
 
@@ -157,12 +157,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 					 throw new WebApplicationException(Status.FORBIDDEN);
 		}
 			if (auth == 0) {// 403 - wrong password
-
+				
 				Log.info("Spreadsheet object invalid.");
 				throw new WebApplicationException(Status.FORBIDDEN);
-
+				
 			} else if (auth == -1) { // 404 - userId doesnt exist
-
+				
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 		
@@ -179,17 +179,16 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		Spreadsheet sheet;
-		
-		String[][] values = null;
-		
+		String[][] values;
+
 		synchronized (this) {// searches for sheet
 
 			sheet = sheets.get(sheetId);
 
 		}
-
+		
 		int auth = userAuth(userId, password);
-
+		
 		// 404 - sheet doesnt exist
 		if (sheet == null || auth == -1) {
 			Log.info("Sheet does not exist.");
@@ -202,11 +201,10 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
 
-		
 		// 200 - success
 		
-		
-		String[][] values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
+		try {
+		 values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
 			@Override
 			public int rows() {
 				return sheet.getRows();
@@ -226,49 +224,24 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				} catch (IndexOutOfBoundsException e) {
 					return "#ERROR?";
 				}
-
-				@Override
-				public int columns() {
-
-					return sheet.getColumns();
-				}
-
-				@Override
-				public String sheetId() {
-
-					return sheet.getSheetId();
-				}
-
-				@Override
-				public String cellRawValue(int row, int col) {
-					try {
-						return sheet.getRawValues()[row][col];
-					} catch (IndexOutOfBoundsException e) {
-						return "#ERROR?";
-					}
-				}
-
-				@Override
-				public String[][] getRangeValues(String sheetURL, String range) {
-
-					return null;
-				}
-			});
-		} catch (Exception e) {
+			}
+			@Override
+			public String[][] getRangeValues(String sheetURL, String range) {
+				return null;
+			}});}
+		catch(Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
-		
-		
 		return values;
-		
+
 	}
 
 	public void updateCell(String sheetId, String cell, String rawValue, String userId, String password) {
 		// -----Checks
 		// If Ids are null
 		int auth = userAuth(userId, password);
-		if (sheetId == null || userId == null || cell == null || auth == -1) {
+		if (sheetId == null || userId == null || cell == null || auth ==-1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		Spreadsheet sheet;
@@ -278,7 +251,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				throw new WebApplicationException(Status.NOT_FOUND);
 			sheet = sheets.get(sheetId);
 			// If password does not match owners password
-			if (auth == 0)
+			if (auth==0)
 				throw new WebApplicationException(Status.FORBIDDEN);
 			// If user has no permission
 			// if (owner != userId && !sheet.getSharedWith().contains(userId + "@" +

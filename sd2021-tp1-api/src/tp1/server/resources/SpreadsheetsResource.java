@@ -486,7 +486,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			user = userId;
 			userDomain = domain;
 		}
-		URI serverUrl = discoverySearch(userDomain + ":Users");
+		URI serverUrl = discoverySearch(userDomain + ":users");
 		WebTarget target = client.target(serverUrl).path(RestUsers.PATH);
 
 		short retries = 0;

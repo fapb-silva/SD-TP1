@@ -181,19 +181,22 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		}
 
+		int auth = userAuth(userId, password);
+		
 		// 404 - sheet doesnt exist
-		if (sheet == null) {
+		if (sheet == null || auth == -1) {
 			Log.info("Sheet does not exist.");
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
 		// 403 - user not shared, user not owner, incorrect pass
-		if (!sheet.getSharedWith().contains(userId) || sheet.getOwner() != userId || userAuth(userId, password) != 1) {
+		if (!sheet.getSharedWith().contains(userId + "@" + domain) && !sheet.getOwner().equals(userId) && auth == 0) {
 			Log.info("Spreadsheet id object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		}
 
 		// 200 - success
+		
 		return sheet.getRawValues();
 
 	}

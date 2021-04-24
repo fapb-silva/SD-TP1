@@ -192,7 +192,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 	public void updateCell(String sheetId, String cell, String rawValue, String userId, String password) {
 		// -----Checks
 		// If Ids are null
-		if (sheetId == null || userId == null || cell == null) {
+		if (sheetId == null || userId == null || cell == null || userAuth(userId,"")==-1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 		synchronized (this) {

@@ -19,8 +19,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import tp1.api.Spreadsheet;
+import tp1.api.engine.AbstractSpreadsheet;
 import tp1.api.service.rest.RestSpreadsheets;
 import tp1.api.service.rest.RestUsers;
+import tp1.impl.engine.SpreadsheetEngineImpl;
 import tp1.server.Discovery;
 
 @Singleton
@@ -197,7 +199,32 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		// 200 - success
 		
-		return sheet.getRawValues();
+		String[][] values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
+			@Override
+			public int rows() {
+				return sheet.getRows();
+			}
+			@Override
+			public int columns() {
+				return sheet.getColumns();
+			}
+			@Override
+			public String sheetId() {
+				return sheet.getSheetId();
+			}
+			@Override
+			public String cellRawValue(int row, int col) {
+				try {
+					return sheet.getRawValues()[row][col];
+				} catch (IndexOutOfBoundsException e) {
+					return "#ERROR?";
+				}
+			}
+			@Override
+			public String[][] getRangeValues(String sheetURL, String range) {
+				return null;
+			}});
+		return values;
 
 	}
 

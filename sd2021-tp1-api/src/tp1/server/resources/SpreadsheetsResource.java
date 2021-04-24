@@ -61,24 +61,16 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			Log.info("Invalid password.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
-
+		
+		String newSheetId = "" + ID++;
+		sheet.setSheetId(newSheetId);
+		sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g - "http://srv1:8080/rest/sheets/4684354
+			
 		synchronized (this) {
 
-//			// Check if userId does not exist exists, if not return HTTP CONFLICT (400)
-//			if (sheets.containsKey(sheet.getSheetId())) {
-//				Log.info("sheet already exists.");
-//				throw new WebApplicationException(Status.BAD_REQUEST);
-//			}
-
 			// Add the sheet to the map of users
-			String newSheetId = "" + ID++;
-			sheet.setSheetId(newSheetId);
-			sheet.setSheetURL(String.format("http://%s:%s/rest/sheets/%s", domain, PORT, newSheetId));// e.g -
-																										// "http://srv1:8080/rest/sheets/4684354
-			sheets.put(newSheetId, sheet);
+			return sheet.getSheetId();
 		}
-
-		return sheet.getSheetId();
 	}
 
 	@Override

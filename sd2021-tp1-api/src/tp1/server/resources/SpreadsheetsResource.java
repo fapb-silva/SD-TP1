@@ -286,7 +286,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 									.accept(MediaType.APPLICATION_JSON).get();
 							if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
 								Spreadsheet remoteSheet = r.readEntity(Spreadsheet.class);
-								if (!remoteSheet.getSharedWith().contains(userId + "@" + domain))
+								if (!remoteSheet.getSharedWith().contains(userId + "@" + domain)&& !remoteSheet.getOwner().equals(userId))
 									throw new WebApplicationException(Status.FORBIDDEN);
 								CellRange valueRange = new CellRange(range);
 								return valueRange.extractRangeValuesFrom(remoteSheet.getRawValues());

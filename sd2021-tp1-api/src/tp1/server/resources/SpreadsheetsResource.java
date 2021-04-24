@@ -51,16 +51,20 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		Log.info("createSpreadsheet : " + sheet);
 
 		// 400 - sheet null
-		if (sheet == null) {
+		if (sheet == null || sheet.getSheetId() != null || sheet.getSheetURL() != null
+				|| sheet.getRows() <= 0 || sheet.getColumns() <= 0 || !sheet.getSharedWith().isEmpty()
+				|| sheet.getRows() != sheet.getRawValues().length || sheet.getColumns() != sheet.getRawValues()[0].length) {
 			Log.info("Spreadsheet object null.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
 
+		
 		// 400 - password invalid valid
 		if (userAuth(sheet.getOwner(), password) != 1) {
 			Log.info("Invalid password.");
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
+		
 		
 		String newSheetId = "" + ID++;
 		sheet.setSheetId(newSheetId);
@@ -72,6 +76,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			sheets.put(newSheetId, sheet);
 			
 		}
+		
 		return sheet.getSheetId();
 	}
 
@@ -140,7 +145,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		} else if (auth == -1) { // 404 - userId doesnt exist
-			throw new WebApplicationException(Status.BAD_GATEWAY);
+			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 
 		synchronized (this) {
@@ -310,13 +315,14 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			try {
 				Response r = target.path(user).queryParam("password", password).request()
 						.accept(MediaType.APPLICATION_JSON).get();
-
+				if(r.getStatus() == Status.NOT_FOUND.getStatusCode())
+					return -1;
 				// User u = r.readEntity(User.class);
 				if (r.getStatus() == Status.FORBIDDEN.getStatusCode())
-					return 0;
+					return 0; 
 				if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity())
 					return 1;
-
+				retries++;
 			} catch (ProcessingException pe) {
 
 				retries++;

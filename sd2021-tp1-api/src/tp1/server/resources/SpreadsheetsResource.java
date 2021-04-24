@@ -81,7 +81,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		}
 
-		return sheet.getSheetId();
+		return newSheetId;
 	}
 
 	@Override
@@ -137,6 +137,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		Spreadsheet sheet;
+		int auth;
 
 		synchronized (this) {// searches for sheet
 
@@ -148,13 +149,13 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
 
-			int auth = userAuth(userId, password);
+			auth = userAuth(userId, password);
 			
 			// 403 - wrong password
 			if (!sheet.getOwner().equals(userId) && !sheet.getSharedWith().contains(userId + "@" +
 					domain))
 					 throw new WebApplicationException(Status.FORBIDDEN);
-			
+		}
 			if (auth == 0) {// 403 - wrong password
 				
 				Log.info("Spreadsheet object invalid.");
@@ -164,7 +165,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 				
 				throw new WebApplicationException(Status.NOT_FOUND);
 			}
-		}
+		
 		return sheet;// send 200?
 	}
 
@@ -200,8 +201,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		}
 
 		// 200 - success
-		String sheetURL = "AB";
-		String range ="123";
+		
 		
 		String[][] values = SpreadsheetEngineImpl.getInstance().computeSpreadsheetValues(new AbstractSpreadsheet() {
 			@Override
@@ -239,11 +239,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		if (sheetId == null || userId == null || cell == null || auth ==-1) {
 			throw new WebApplicationException(Status.BAD_REQUEST);
 		}
+		Spreadsheet sheet;
 		synchronized (this) {
 			// If sheets do not exist
 			if (!sheets.containsKey(sheetId))
 				throw new WebApplicationException(Status.NOT_FOUND);
-			Spreadsheet sheet = sheets.get(sheetId);
+			sheet = sheets.get(sheetId);
 			// If password does not match owners password
 			if (auth==0)
 				throw new WebApplicationException(Status.FORBIDDEN);

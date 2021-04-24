@@ -443,19 +443,24 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 
 		if (usersList.containsKey(userId)) {
 			Set<String> usersSheets = usersList.get(userId);
-			Set<String> sharedSheets = sharedList.get(userId);
+			
 			for (String thisSheet : usersSheets) {
 				if (sheets.containsKey(thisSheet))
 					sheets.remove(thisSheet);
 			}
+			
+			
+			usersList.remove(userId);
+
+		}
+		if(sharedList.containsKey(userId)) {
+			Set<String> sharedSheets = sharedList.get(userId);
 			for (String thisSheet : sharedSheets) {
 				if (sheets.containsKey(thisSheet))
 					if (sheets.get(thisSheet).getSharedWith().contains(userId))
 						sheets.get(thisSheet).getSharedWith().remove(userId);
 			}
 			sharedList.remove(userId);
-			usersList.remove(userId);
-
 		}
 	}
 

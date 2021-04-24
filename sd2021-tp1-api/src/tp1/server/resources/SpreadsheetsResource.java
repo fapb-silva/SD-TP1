@@ -145,6 +145,12 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			}
 
 			int auth = userAuth(userId, password);
+			
+			// 403 - wrong password
+			if (!sheet.getOwner().equals(userId) && !sheet.getSharedWith().contains(userId + "@" +
+					domain))
+					 throw new WebApplicationException(Status.FORBIDDEN);
+			
 			if (auth == 0) {// 403 - wrong password
 				
 				Log.info("Spreadsheet object invalid.");

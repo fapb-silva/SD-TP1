@@ -161,10 +161,9 @@ public class UsersResource implements RestUsers {
 		synchronized (this) {
 			Collection<User> usersSet = users.values();
 			for (User user : usersSet) {
-				String fullName = user.getFullName();
-				if (fullName.contains(pattern)) {
-					User userToAdd = user;
-					userToAdd.setPassword("");
+				String fullName = user.getFullName().toLowerCase();
+				if (fullName.contains(pattern.toLowerCase())) {
+					User userToAdd = new User(user.getUserId(), user.getFullName(), user.getEmail(), "");
 					matchingUsers.add(userToAdd);
 				}
 			}

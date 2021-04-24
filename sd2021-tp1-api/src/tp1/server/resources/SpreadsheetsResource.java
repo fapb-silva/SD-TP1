@@ -69,8 +69,10 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 		synchronized (this) {
 
 			// Add the sheet to the map of users
-			return sheet.getSheetId();
+			sheets.put(newSheetId, sheet);
+			
 		}
+		return sheet.getSheetId();
 	}
 
 	@Override
@@ -138,7 +140,7 @@ public class SpreadsheetsResource implements RestSpreadsheets {
 			Log.info("Spreadsheet object invalid.");
 			throw new WebApplicationException(Status.FORBIDDEN);
 		} else if (auth == -1) { // 404 - userId doesnt exist
-			throw new WebApplicationException(Status.NOT_FOUND);
+			throw new WebApplicationException(Status.BAD_GATEWAY);
 		}
 
 		synchronized (this) {
